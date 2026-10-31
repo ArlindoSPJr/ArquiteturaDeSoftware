@@ -12,6 +12,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +31,13 @@ public class OutboxWorker {
 
 	private final OutboxUserRepository outboxUserRepository;
 	private final RabbitTemplate rabbitTemplate;
+	private final String exchange;
 
-	public OutboxWorker(OutboxUserRepository outboxUserRepository, RabbitTemplate rabbitTemplate) {
+	public OutboxWorker(OutboxUserRepository outboxUserRepository, RabbitTemplate rabbitTemplate,
+			@Value(RabbitConfig.EXCHANGE_PROPERTY) String exchange) {
 		this.outboxUserRepository = outboxUserRepository;
 		this.rabbitTemplate = rabbitTemplate;
+		this.exchange = exchange;
 	}
 
 	// fixedDelay: o próximo ciclo começa 1 s depois que o anterior TERMINA, então nunca há dois ao mesmo tempo.
@@ -64,7 +68,7 @@ public class OutboxWorker {
 			.build();
 
 		CorrelationData correlation = new CorrelationData(event.getId().toString());
-		rabbitTemplate.send(RabbitConfig.USER_EVENTS_EXCHANGE, routingKey, message, correlation);
+		rabbitTemplate.send(exchange, routingKey, message, correlation);
 
 		// Publisher confirm: espera o broker dizer que recebeu (ack) antes de seguir.
 		CorrelationData.Confirm confirm = correlation.getFuture().get(CONFIRM_TIMEOUT_SECONDS, TimeUnit.SECONDS);
