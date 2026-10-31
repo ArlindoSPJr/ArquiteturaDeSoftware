@@ -2,8 +2,38 @@ spring:
   application:
     name: notification
   # Valores para rodar localmente (mvnw/IDE) contra o docker-compose.
+  datasource:
+    # Banco próprio do serviço (mesmo container Postgres, banco diferente do outbox).
+    url: jdbc:postgresql://localhost:5433/notification
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
   rabbitmq:
     host: localhost
     port: 5672
     username: outbox
     password: outbox
+    listener:
+      simple:
+        # Falha no processamento (ex.: SMTP fora do ar) é tentada de novo algumas vezes, com espera crescente.
+        # Esgotadas as tentativas, a mensagem é rejeitada sem requeue e descartada (ainda não há DLQ).
+        retry:
+          enabled: true
+          # Novas tentativas além da primeira (1 + 2 = 3 no total). No Spring Boot 4 substitui max-attempts.
+          max-retries: 2
+          initial-interval: 1s
+          multiplier: 2
+  mail:
+    # Mailpit do docker-compose: captura os e-mails, visíveis em http://localhost:8025
+    host: localhost
+    port: 1025
+
+server:
+  port: 8081 # a 8080 é do User service
+
+notification:
+  mail:
+    from: no-reply@outbox.local

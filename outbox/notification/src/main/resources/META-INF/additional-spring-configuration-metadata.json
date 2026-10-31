@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "notification.mail.from",
+      "type": "java.lang.String",
+      "description": "Remetente dos e-mails enviados pelo Notification service."
+    }
+  ]
+}
