@@ -17,3 +17,5 @@ spring:
     port: 5672
     username: outbox
     password: outbox
+    # Liga os publisher confirms: o broker responde ack/nack para cada mensagem publicada.
+    publisher-confirm-type: correlated

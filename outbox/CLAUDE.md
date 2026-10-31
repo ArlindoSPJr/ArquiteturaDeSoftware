@@ -18,6 +18,9 @@ Implementado até agora — só o **lado de escrita do User service** (ainda sem
 - Pacote `outbox`: entidade `OutboxUser` (tabela `outbox_user`: `id` UUID, `user_id` FK → `users.id`, `transition_type`, `payload` jsonb, `status`) e enums `TransitionType` (`USER_CREATED`/`USER_UPDATED`/`USER_DELETED`) e `OutboxStatus` (`PENDING`/`PROCESSED`).
 - Cada escrita no `UserService` (create/update/delete) grava o evento em `outbox_user` **no mesmo `@Transactional`**, com status `PENDING` e o `UserResponse` serializado como payload.
 - **Soft delete** (decisão do usuário): `DELETE` só preenche `users.deleted_at`, porque a FK de `outbox_user` impediria apagar a linha. Consultas de usuário filtram `deleted_at is null` (`findAllByDeletedAtIsNull`, `findByIdAndDeletedAtIsNull`).
+- Pacote `worker`: `OutboxWorker` faz polling com `@Scheduled(fixedDelay = 1000)` + `@Transactional` (`@EnableScheduling` em `OutboxApplication`). Busca até 50 eventos via `OutboxUserRepository.findLastUserPending` (query nativa: `status = 'PENDING' ORDER BY created_at ASC LIMIT :limit FOR UPDATE SKIP LOCKED` — mais antigo primeiro, como uma fila). Para **cada** evento: publica na exchange, espera o *publisher confirm* (`publisher-confirm-type: correlated`, `CorrelationData`) e só então chama `markProcessed()` (`status = PROCESSED`, `processed_at`). Falha em qualquer evento → exceção → rollback do lote inteiro → tudo é tentado de novo no próximo ciclo (at-least-once).
+- `worker/RabbitConfig`: topic exchange `user.events`; fila durável `sendNotification` ligada só à routing key `user.created`. Routing keys vêm de `TransitionType.getRoutingKey()` (`user.created`/`user.updated`/`user.deleted`). `user.updated`/`user.deleted` são publicados mas não têm fila ligada (o broker descarta). Mensagem: corpo = payload JSON, `messageId` = id do evento na outbox (chave de idempotência do futuro consumidor), entrega persistente.
+- O worker fica **dentro do User service** (decisão discutida com o usuário): a tabela outbox é do banco do User service, e um serviço separado lendo esse banco quebraria o "um banco por serviço". A fila `sendNotification` está declarada aqui só até o Notification service existir — depois a declaração deve ir para ele.
 - Esquema gerado pelo Hibernate (`ddl-auto: update`) — não há migrations (Flyway/Liquibase).
 - Spring Boot 4 usa **Jackson 3**: o mapper é `tools.jackson.databind.json.JsonMapper`, não `com.fasterxml...ObjectMapper`. `@AutoConfigureMockMvc` fica em `org.springframework.boot.webmvc.test.autoconfigure`.
 
@@ -45,7 +48,7 @@ Aplicação: executar a partir de `outbox/` (no Windows/PowerShell use `.\mvnw.c
 ./mvnw spring-boot:run                                 # sobe a aplicação (http://localhost:8080/users)
 ```
 
-Os testes são `@SpringBootTest` contra o Postgres real do compose (sem banco em memória/Testcontainers), então exigem `docker compose up -d` rodando antes. `UserControllerTests` é `@Transactional`, então cada teste faz rollback e não deixa dados no banco.
+Os testes são `@SpringBootTest` contra o Postgres real do compose (sem banco em memória/Testcontainers), então exigem `docker compose up -d` rodando antes. Os testes são `@Transactional`, então cada teste faz rollback e não deixa dados no banco. O rollback **não desfaz mensagens no RabbitMQ**: `OutboxWorkerTests` consome da fila `sendNotification` a mensagem que publicou (e devolve as outras com nack + requeue) para não deixar mensagens de usuários inexistentes. O `OutboxWorker` agendado também roda durante os testes e publica eventos `PENDING` já commitados no banco de dev.
 
 ## Arquitetura-alvo (`docs/diagrama.png`)
 

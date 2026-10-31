@@ -44,6 +44,9 @@ public class OutboxUser {
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
+	@Column(name = "processed_at")
+	private Instant processedAt;
+
 	protected OutboxUser() {
 	}
 
@@ -54,6 +57,11 @@ public class OutboxUser {
 		this.payload = payload;
 		this.status = OutboxStatus.PENDING;
 		this.createdAt = Instant.now();
+	}
+
+	public void markProcessed() {
+		this.status = OutboxStatus.PROCESSED;
+		this.processedAt = Instant.now();
 	}
 
 	public UUID getId() {
@@ -78,6 +86,10 @@ public class OutboxUser {
 
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public Instant getProcessedAt() {
+		return processedAt;
 	}
 
 }
