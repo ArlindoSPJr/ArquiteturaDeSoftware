@@ -26,8 +26,8 @@ class OutboxUserRepositoryTests {
 
 	@Test
 	void findLastUserPendingReturnsPendingEventsOldestFirst() {
-		Long id = userService.create(new UserRequest("Carla", "11444440000")).id();
-		userService.update(id, new UserRequest("Carla Souza", "11444440000"));
+		Long id = userService.create(new UserRequest("Carla", "carla@example.com", "11444440000")).id();
+		userService.update(id, new UserRequest("Carla Souza", "carla@example.com", "11444440000"));
 
 		List<OutboxUser> events = outboxUserRepository.findLastUserPending(50);
 
@@ -39,8 +39,8 @@ class OutboxUserRepositoryTests {
 
 	@Test
 	void findLastUserPendingRespectsLimit() {
-		Long id = userService.create(new UserRequest("Bruno", "11333330000")).id();
-		userService.update(id, new UserRequest("Bruno Lima", "11333330000"));
+		Long id = userService.create(new UserRequest("Bruno", "bruno@example.com", "11333330000")).id();
+		userService.update(id, new UserRequest("Bruno Lima", "bruno@example.com", "11333330000"));
 
 		assertThat(outboxUserRepository.findLastUserPending(1)).hasSize(1);
 	}

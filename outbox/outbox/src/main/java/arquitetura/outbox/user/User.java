@@ -20,6 +20,10 @@ public class User {
 	@Column(nullable = false)
 	private String name;
 
+	// Sem nullable = false no banco: o ddl-auto: update não consegue criar coluna NOT NULL numa tabela
+	// que já tem linhas. A obrigatoriedade é garantida na API (@NotBlank @Email em UserRequest).
+	private String email;
+
 	private String phone;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
@@ -32,14 +36,16 @@ public class User {
 	protected User() {
 	}
 
-	public User(String name, String phone) {
+	public User(String name, String email, String phone) {
 		this.name = name;
+		this.email = email;
 		this.phone = phone;
 		this.createdAt = Instant.now();
 	}
 
-	public void update(String name, String phone) {
+	public void update(String name, String email, String phone) {
 		this.name = name;
+		this.email = email;
 		this.phone = phone;
 	}
 
@@ -53,6 +59,10 @@ public class User {
 
 	public String getName() {
 		return name;
+	}
+
+	public String getEmail() {
+		return email;
 	}
 
 	public String getPhone() {

@@ -53,8 +53,8 @@ class OutboxWorkerTests {
 		// (elas são do consumidor), e o teste não pode depender do Notification service estar rodando.
 		String queue = declareTestQueue(TransitionType.USER_CREATED.getRoutingKey());
 		try {
-			Long id = userService.create(new UserRequest("Lucia", "11222220000")).id();
-			userService.update(id, new UserRequest("Lucia Alves", "11222220000"));
+			Long id = userService.create(new UserRequest("Lucia", "lucia@example.com", "11222220000")).id();
+			userService.update(id, new UserRequest("Lucia Alves", "lucia@example.com", "11222220000"));
 
 			outboxWorker.publishPending();
 
@@ -71,8 +71,8 @@ class OutboxWorkerTests {
 			GetResponse message = take(queue, created.getId().toString());
 			assertThat(message).isNotNull();
 			assertThat(message.getProps().getContentType()).isEqualTo("application/json");
-			assertThat(jsonMapper.readTree(new String(message.getBody(), StandardCharsets.UTF_8)).get("name").asString())
-				.isEqualTo("Lucia");
+			assertThat(jsonMapper.readTree(new String(message.getBody(), StandardCharsets.UTF_8)).get("email").asString())
+				.isEqualTo("lucia@example.com");
 		}
 		finally {
 			rabbitTemplate.execute(channel -> channel.queueDelete(queue));

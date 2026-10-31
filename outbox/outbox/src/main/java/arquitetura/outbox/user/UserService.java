@@ -26,7 +26,7 @@ public class UserService {
 
 	@Transactional
 	public UserResponse create(UserRequest request) {
-		User user = userRepository.save(new User(request.name(), request.phone()));
+		User user = userRepository.save(new User(request.name(), request.email(), request.phone()));
 		registerEvent(user, TransitionType.USER_CREATED);
 		return UserResponse.from(user);
 	}
@@ -44,7 +44,7 @@ public class UserService {
 	@Transactional
 	public UserResponse update(Long id, UserRequest request) {
 		User user = findActive(id);
-		user.update(request.name(), request.phone());
+		user.update(request.name(), request.email(), request.phone());
 		registerEvent(user, TransitionType.USER_UPDATED);
 		return UserResponse.from(user);
 	}

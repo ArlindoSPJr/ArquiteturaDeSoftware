@@ -1,6 +1,7 @@
 package arquitetura.outbox.user;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record UserRequest(@NotBlank String name, String phone) {
+public record UserRequest(@NotBlank String name, @NotBlank @Email String email, String phone) {
 }
