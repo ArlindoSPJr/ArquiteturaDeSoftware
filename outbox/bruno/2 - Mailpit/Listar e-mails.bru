@@ -1,0 +1,15 @@
+meta {
+  name: Listar e-mails
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{mailpitUrl}}/api/v1/messages
+  body: none
+  auth: none
+}
+
+docs {
+  E-mails capturados pelo Mailpit (interface web: http://localhost:8025).
+}

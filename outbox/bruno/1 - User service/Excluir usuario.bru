@@ -1,0 +1,15 @@
+meta {
+  name: Excluir usuario
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{userServiceUrl}}/users/{{userId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Soft delete (preenche deleted_at) + evento USER_DELETED (user.deleted, sem fila ligada).
+}

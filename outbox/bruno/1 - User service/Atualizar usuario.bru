@@ -1,0 +1,24 @@
+meta {
+  name: Atualizar usuario
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{userServiceUrl}}/users/{{userId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Maria Souza",
+    "email": "{{email}}",
+    "phone": "11999991111"
+  }
+}
+
+docs {
+  Gera o evento USER_UPDATED (routing key user.updated). Nenhuma fila está ligada a ela,
+  então o broker descarta a mensagem e nenhum e-mail é enviado.
+}

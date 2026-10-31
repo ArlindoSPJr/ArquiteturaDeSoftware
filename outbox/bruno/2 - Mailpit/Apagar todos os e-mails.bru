@@ -1,0 +1,15 @@
+meta {
+  name: Apagar todos os e-mails
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{mailpitUrl}}/api/v1/messages
+  body: none
+  auth: none
+}
+
+docs {
+  Limpa a caixa do Mailpit (só o Mailpit local; não mexe em banco nem fila).
+}

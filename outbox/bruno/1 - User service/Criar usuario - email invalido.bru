@@ -1,0 +1,24 @@
+meta {
+  name: Criar usuario - email invalido
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{userServiceUrl}}/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Sem Email",
+    "email": "invalido"
+  }
+}
+
+tests {
+  test("retorna 400", function () {
+    expect(res.status).to.equal(400);
+  });
+}

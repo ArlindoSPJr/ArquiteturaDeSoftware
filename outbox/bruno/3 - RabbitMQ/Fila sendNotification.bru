@@ -1,0 +1,20 @@
+meta {
+  name: Fila sendNotification
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{rabbitUrl}}/api/queues/%2F/sendNotification
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{rabbitUser}}
+  password: {{rabbitPassword}}
+}
+
+docs {
+  Estado da fila: messages (prontas + sem ack), consumers (1 se o Notification service está no ar).
+}

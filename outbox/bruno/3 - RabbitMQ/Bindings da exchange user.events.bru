@@ -1,0 +1,20 @@
+meta {
+  name: Bindings da exchange user.events
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{rabbitUrl}}/api/exchanges/%2F/user.events/bindings/source
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{rabbitUser}}
+  password: {{rabbitPassword}}
+}
+
+docs {
+  Regras de roteamento da exchange: aqui aparece sendNotification <- user.created.
+}

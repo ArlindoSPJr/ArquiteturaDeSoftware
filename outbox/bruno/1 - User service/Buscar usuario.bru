@@ -1,0 +1,15 @@
+meta {
+  name: Buscar usuario
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{userServiceUrl}}/users/{{userId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Usa o userId salvo por "Criar usuario".
+}

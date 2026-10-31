@@ -1,0 +1,45 @@
+meta {
+  name: Criar usuario
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{userServiceUrl}}/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Maria Silva",
+    "email": "{{email}}",
+    "phone": "11999990000"
+  }
+}
+
+script:pre-request {
+  // E-mail único a cada execução (o Mailpit mostra cada envio separado).
+  bru.setVar("email", `maria.${Date.now()}@example.com`);
+}
+
+script:post-response {
+  // Guarda o id para as outras requisições (Buscar, Atualizar, Excluir).
+  if (res.status === 201) {
+    bru.setVar("userId", res.body.id);
+  }
+}
+
+tests {
+  test("retorna 201 com o usuário criado", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body.id).to.be.a("number");
+    expect(res.body.email).to.equal(bru.getVar("email"));
+  });
+}
+
+docs {
+  Cria o usuário e, na mesma transação, o evento USER_CREATED (PENDING) em outbox_user.
+  Em ~1 s o worker publica em user.events / user.created; o Notification service consome da fila
+  sendNotification e envia o e-mail de boas-vindas. Confira em "2 - Mailpit / Listar e-mails".
+}

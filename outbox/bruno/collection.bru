@@ -1,0 +1,16 @@
+meta {
+  name: Outbox - estudo
+}
+
+vars:pre-request {
+  userServiceUrl: http://localhost:8080
+  mailpitUrl: http://localhost:8025
+  rabbitUrl: http://localhost:15672
+  rabbitUser: outbox
+  rabbitPassword: outbox
+}
+
+docs {
+  Variáveis definidas na própria collection: funcionam sem selecionar ambiente.
+  O ambiente "local" (environments/local.bru) tem os mesmos valores e, se selecionado, tem prioridade.
+}
