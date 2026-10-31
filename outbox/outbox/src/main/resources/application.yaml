@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: outbox
+  # Valores para rodar localmente (mvnw/IDE) contra o docker-compose.
+  # Dentro do container, host e URL são sobrescritos por variáveis de ambiente.
+  datasource:
+    url: jdbc:postgresql://localhost:5433/outbox
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      # Hibernate cria/atualiza as tabelas users e outbox_user a partir das entidades.
+      ddl-auto: update
+    open-in-view: false
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: outbox
+    password: outbox

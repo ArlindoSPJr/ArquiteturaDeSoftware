@@ -1,0 +1,55 @@
+# Infraestrutura local do estudo de Transactional Outbox.
+#
+#   docker compose up -d                 -> só Postgres + RabbitMQ (app roda via mvnw/IDE)
+#   docker compose --profile app up -d   -> também sobe a aplicação Java em container
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: outbox
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5433:5432" # 5433 no host: a 5432 já é usada pelo PostgreSQL instalado no Windows
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d outbox"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: outbox
+      RABBITMQ_DEFAULT_PASS: outbox
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # painel de administração: http://localhost:15672
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    profiles: ["app"]
+    build: ./outbox
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/outbox
+      SPRING_RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
